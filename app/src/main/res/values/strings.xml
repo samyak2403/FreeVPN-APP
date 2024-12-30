@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Free VPN APP</string>
     <string name="app_logo">App Logo</string>
+    <string name="country_flag">Country Flag</string>
+    <string name="navigate">Navigate</string>
+
 </resources>
