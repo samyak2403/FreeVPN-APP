@@ -18,10 +18,11 @@
 
         <!-- Inner Content -->
         <LinearLayout
+            android:id="@+id/serverLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@drawable/ripple"
             android:gravity="center_vertical"
-
             android:orientation="horizontal">
 
             <!-- Country Icon -->

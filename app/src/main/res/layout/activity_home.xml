@@ -307,9 +307,7 @@
                                         android:layout_height="50dp"
                                         android:layout_marginStart="16dp"
                                         android:layout_marginLeft="10dp"
-                                        android:layout_marginEnd="16dp"
-                                        android:background="@drawable/circle_shap"
-                                        android:backgroundTint="#33373A">
+                                        android:layout_marginEnd="16dp">
 
                                         <!-- Country Details -->
                                         <ImageView
@@ -399,8 +397,10 @@
                             android:gravity="center">
 
                             <ImageView
+                                android:id="@+id/vpnButton"
                                 android:layout_width="35dp"
                                 android:layout_height="35dp"
+                                android:background="@drawable/ripple"
                                 android:src="@drawable/power_btn"
                                 app:tint="@color/gray" />
 

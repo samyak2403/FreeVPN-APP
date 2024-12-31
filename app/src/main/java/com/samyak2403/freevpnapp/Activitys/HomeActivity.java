@@ -1,13 +1,16 @@
 package com.samyak2403.freevpnapp.Activitys;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.net.VpnService;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +20,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
@@ -33,6 +40,8 @@ import com.samyak2403.freevpnapp.serverdata.Servers;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import de.blinkt.openvpn.OpenVpnApi;
+
 public class HomeActivity extends AppCompatActivity {
 
 
@@ -40,7 +49,7 @@ public class HomeActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
     LinearLayout navView;
 
-    ImageView drawerButton;
+    ImageView drawerButton, vpnButton;
 
     //Views
 
@@ -48,8 +57,16 @@ public class HomeActivity extends AppCompatActivity {
 
     RecyclerView recyclerView;
 
+    ImageView countryFlag;
+
+    TextView countryName, ipText;
+
     // Ver
     ArrayList<HashMap<String, Object>> serverArrayList = new ArrayList<>();
+
+    HashMap<String, Object> selectedServer = new HashMap<>();
+
+    Dialog dialog;
 
 
     @Override
@@ -68,6 +85,10 @@ public class HomeActivity extends AppCompatActivity {
         navView = findViewById(R.id.navView);
         drawerButton = findViewById(R.id.drawerButton);
         serverButton = findViewById(R.id.serverButton);
+        countryFlag = findViewById(R.id.countryFlag);
+        countryName = findViewById(R.id.countryName);
+        ipText = findViewById(R.id.ipText);
+        vpnButton = findViewById(R.id.vpnButton);
 
 
         setupDrawer();
@@ -90,11 +111,23 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
 
+
+        vpnButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (selectedServer != null && selectedServer.size() != 0) {
+                    prepareVpn(selectedServer);
+                }else {
+                    Toast.makeText(HomeActivity.this, "Please Select a Server", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
     }
 
     private void showServerLayout() {
 
-        Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar);
+        dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar);
 
         View view = getLayoutInflater().inflate(R.layout.server_layout, null);
         dialog.setContentView(view);
@@ -249,6 +282,9 @@ public class HomeActivity extends AppCompatActivity {
                             if (recyclerView != null) {
                                 recyclerView.getAdapter().notifyDataSetChanged();
                             }
+                            if (serverArrayList.size() == 1) {
+                                selectServer(hashMaps);
+                            }
                         }
                     });
 
@@ -267,6 +303,66 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void selectServer(HashMap<String, Object> hashMap) {
+
+
+        selectedServer = hashMap;
+
+        countryName.setText(hashMap.get("countryLong").toString());
+
+        ipText.setText(hashMap.get("ipAddress").toString());
+
+
+        Glide.with(HomeActivity.this)
+                .load("https://www.vpngate.net/images//flags/24/" + hashMap.get("countryShort").toString() + ".png")
+                .into(countryFlag);
+
+        if (dialog != null) {
+            dialog.dismiss();
+        }
+
+
+    }
+
+    private void prepareVpn(HashMap<String, Object> hashMap) {
+
+        Intent intent = VpnService.prepare(HomeActivity.this);
+        if (intent != null) {
+            vpnResult.launch(intent);
+
+        } else {
+
+            connectVpn(hashMap);
+
+        }
+
+    }
+
+    private void connectVpn(HashMap<String, Object> hashMap) {
+
+
+        try {
+            OpenVpnApi.startVpn(this, hashMap.get("oConfigData").toString(), hashMap.get("countryShort").toString(), "vpn", "vpn");
+        } catch (RemoteException e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    private ActivityResultLauncher<Intent> vpnResult = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+        @Override
+        public void onActivityResult(ActivityResult result) {
+
+            if (result.getResultCode() == Activity.RESULT_OK) {
+
+                connectVpn(selectedServer);
+
+            } else {
+                Toast.makeText(HomeActivity.this, "Permission must be granted", Toast.LENGTH_SHORT).show();
+            }
+        }
+    });
 
 
     public class ServerRecyclerAdapter extends RecyclerView.Adapter<ServerRecyclerAdapter.ViewHolder> {
@@ -303,6 +399,7 @@ public class HomeActivity extends AppCompatActivity {
             TextView speedText = view.findViewById(R.id.speedText);
             TextView countryName = view.findViewById(R.id.countryName);
             TextView ipText = view.findViewById(R.id.ipText);
+            LinearLayout serverLayout = view.findViewById(R.id.serverLayout);
 
             countryName.setText(_data.get(_position).get("countryLong").toString());
             speedText.setText(_data.get(_position).get("speed").toString());
@@ -314,6 +411,14 @@ public class HomeActivity extends AppCompatActivity {
             Glide.with(HomeActivity.this)
                     .load("https://www.vpngate.net/images//flags/24/" + _data.get(_position).get("countryShort").toString() + ".png")
                     .into(countryFlag);
+
+
+            serverLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    selectServer(_data.get(_position));
+                }
+            });
 
 
         }
