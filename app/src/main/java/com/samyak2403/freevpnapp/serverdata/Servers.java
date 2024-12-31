@@ -20,8 +20,7 @@ import okhttp3.Response;
 public class Servers {
 
 
-    Call mCall;
-
+    Call mcall;
 
     public Servers() {
 
@@ -29,12 +28,13 @@ public class Servers {
 
     public void loadServers(ServerLoadListener serverLoadListener) {
 
-        Request request = new Request.Builder().url("http://vpngate.net/api/iphone/").build();
-        mCall = new OkHttpClient().newCall(request);
-        mCall.enqueue(new Callback() {
+
+        Request request = new Request.Builder().url("http://www.vpngate.net/api/iphone").build();
+        mcall = new OkHttpClient().newCall(request);
+        mcall.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                serverLoadListener.onServerFailed(e.getMessage());
+                serverLoadListener.onServerLoadFailed(e.getMessage());
             }
 
             @Override
@@ -43,10 +43,10 @@ public class Servers {
             }
         });
 
-
     }
 
-    public void parseResponse(Response response, ServerLoadListener serverLoadListener) {
+
+    public void paresResponse(Response response, ServerLoadListener serverLoadListener) {
 
         InputStream inputStream = null;
         BufferedReader bufferedReader = null;
@@ -56,19 +56,18 @@ public class Servers {
             bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
             String data;
 
-
             while ((data = bufferedReader.readLine()) != null) {
-                if (data.startsWith("*") && !data.startsWith("#")) {
+                if (!data.startsWith("*") && !data.startsWith("#")) {
 
                     loadServerData(serverLoadListener, data);
-
                 }
             }
 
             inputStream.close();
             bufferedReader.close();
+
         } catch (IOException e) {
-            serverLoadListener.onServerFailed(e.getMessage());
+            serverLoadListener.onServerLoadFailed(e.getMessage());
         }
 
     }
@@ -77,6 +76,7 @@ public class Servers {
 
         HashMap<String, Object> hashMap = new HashMap<>();
         String[] serverData = data.split(",");
+
 
         hashMap.put("hostName", serverData[0]);
         hashMap.put("ipAddress", serverData[1]);
@@ -103,13 +103,14 @@ public class Servers {
     }
 
 
+    // Protocol get
     public static String getProtocol(String[] lines) {
 
         String protocol = "";
         for (String line : lines) {
             if (!line.startsWith("#")) {
                 if (line.startsWith("proto")) {
-                    protocol = line.split(" ")[1];
+                    protocol = line.split("")[1];
                 }
             }
         }
@@ -117,6 +118,7 @@ public class Servers {
 
     }
 
+    //Port
     public static int getPort(String[] lines) {
 
         int port = 0;
@@ -131,13 +133,15 @@ public class Servers {
 
     }
 
+    //Server LoadListener
     public interface ServerLoadListener {
 
-        void onServerLoaded(HashMap<String, Object> hashMap);
 
-        void onServerFailed(String message);
+        void onServerLoaded(HashMap<String, Object> hashMaps);
 
+        void onServerLoadFailed(String message);
 
     }
+
 
 }
