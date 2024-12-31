@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Free VPN APP"
 include(":app")
+include(":vpnLib")
