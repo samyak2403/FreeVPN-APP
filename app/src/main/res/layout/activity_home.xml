@@ -400,8 +400,9 @@
 
                             <ImageView
                                 android:id="@+id/vpnButton"
-                                android:layout_width="35dp"
-                                android:layout_height="35dp"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:padding="10dp"
                                 android:background="@drawable/ripple"
                                 android:src="@drawable/power_btn"
                                 app:tint="@color/gray" />
