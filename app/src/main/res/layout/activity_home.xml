@@ -68,7 +68,7 @@
                                         android:id="@+id/drawerButton"
                                         android:layout_width="24dp"
                                         android:layout_height="24dp"
-                                        android:background="@drawable/ripple"
+                                        android:background="@drawable/cirle_ripple"
                                         android:src="@drawable/menu"
                                         app:tint="@android:color/black" />
                                 </LinearLayout>
@@ -93,13 +93,17 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:alpha="0.5"
+
                                     android:background="@drawable/circle_shap"
                                     android:gravity="center">
 
                                     <ImageView
+                                        android:id="@+id/settingButton"
                                         android:layout_width="24dp"
-                                        android:layout_height="24dp"
+                                        android:layout_height="wrap_content"
+                                        android:background="@drawable/cirle_ripple"
                                         android:src="@drawable/setting"
+
                                         app:tint="@android:color/black" />
                                 </LinearLayout>
 
@@ -162,12 +166,13 @@
 
 
                                     <TextView
+                                        android:id="@+id/dSpeedText"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:alpha="0.8"
                                         android:text="00.0 Mbps"
                                         android:textColor="@color/white"
-                                        android:textSize="16sp"
+                                        android:textSize="14sp"
                                         android:textStyle="bold" />
                                 </LinearLayout>
 
@@ -205,12 +210,14 @@
 
 
                                     <TextView
+                                        android:id="@+id/uSpeedText"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:alpha="0.8"
+
                                         android:text="00.0 Mbps"
                                         android:textColor="@color/white"
-                                        android:textSize="16sp"
+                                        android:textSize="14sp"
                                         android:textStyle="bold" />
                                 </LinearLayout>
 
@@ -252,9 +259,9 @@
                                 android:layout_marginTop="80dp"
                                 android:alpha="0.8"
                                 android:letterSpacing="0.05"
-                                android:text="IP : 00000000"
+                                android:text="IP : 00.00.00.00"
                                 android:textColor="@color/black"
-                                android:textSize="16sp"
+                                android:textSize="14sp"
                                 android:textStyle="bold" />
 
                             <TextView
@@ -269,6 +276,22 @@
 
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
+                        </LinearLayout>
+
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center">
+
+                            <com.google.android.gms.ads.AdView
+                                android:id="@+id/adView"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:adSize="BANNER"
+                                app:adUnitId="@string/banner_Id" />
+
                         </LinearLayout>
 
 
@@ -402,8 +425,8 @@
                                 android:id="@+id/vpnButton"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
+                                android:background="@drawable/cirle_ripple"
                                 android:padding="10dp"
-                                android:background="@drawable/ripple"
                                 android:src="@drawable/power_btn"
                                 app:tint="@color/gray" />
 

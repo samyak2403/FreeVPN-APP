@@ -27,6 +27,7 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
@@ -38,6 +39,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.samyak2403.freevpnapp.R;
@@ -47,6 +53,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import de.blinkt.openvpn.OpenVpnApi;
+import de.blinkt.openvpn.core.OpenVPNService;
 import de.blinkt.openvpn.core.OpenVPNThread;
 
 public class HomeActivity extends AppCompatActivity {
@@ -64,9 +71,9 @@ public class HomeActivity extends AppCompatActivity {
 
     RecyclerView recyclerView;
 
-    ImageView countryFlag;
+    ImageView countryFlag, settingButton;
 
-    TextView countryName, ipText, statusText, ipText2, connectButtonText;
+    TextView countryName, ipText, statusText, ipText2, connectButtonText, dSpeedText, uSpeedText;
 
     // Ver
     ArrayList<HashMap<String, Object>> serverArrayList = new ArrayList<>();
@@ -77,6 +84,8 @@ public class HomeActivity extends AppCompatActivity {
 
     boolean isVpnConnected = false;
     SharedPreferences sharedPreferences;
+
+    InterstitialAd minterstitialAd;
 
 
     @Override
@@ -103,6 +112,9 @@ public class HomeActivity extends AppCompatActivity {
         ipText2 = findViewById(R.id.ipText2);
         sharedPreferences = this.getSharedPreferences("ServerDetails", Activity.MODE_PRIVATE);
         connectButtonText = findViewById(R.id.connectButtonText);
+        dSpeedText = findViewById(R.id.dSpeedText);
+        uSpeedText = findViewById(R.id.uSpeedText);
+        settingButton = findViewById(R.id.settingButton);
 
         //setupDrawer
         setupDrawer();
@@ -142,6 +154,28 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
 
+        settingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+            }
+        });
+
+
+        checkVpnConnection();
+
+        loadInterstitialAd();
+        loadBannerAd();
+
+    }
+
+    private void checkVpnConnection() {
+
+        if (OpenVPNService.getStatus().equals("CONNECTED")) {
+            onVpnConnected();
+            statusText.setText("STATUS : CONNECTED");
+        }
+
     }
 
     private void loadSavedServer() {
@@ -154,6 +188,7 @@ public class HomeActivity extends AppCompatActivity {
         }.getType());
 
         selectServer(hashMap);
+        ipText2.setText("IP : " + hashMap.get("ipAddress").toString());
 
     }
 
@@ -171,6 +206,11 @@ public class HomeActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setItemViewCacheSize(1000);
         recyclerView.setAdapter(new ServerRecyclerAdapter(serverArrayList));
+
+
+        AdView adView = view.findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
 
 
         //back button
@@ -326,12 +366,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onServerLoadFailed(String message) {
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(HomeActivity.this, "Server not loaded because" + message, Toast.LENGTH_SHORT).show();
-                    }
-                });
+
             }
         });
     }
@@ -361,6 +396,9 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void prepareVpn(HashMap<String, Object> hashMap) {
+
+        //ads showing
+        showInterstitialAd();
 
         Intent intent = VpnService.prepare(HomeActivity.this);
         if (intent != null) {
@@ -408,18 +446,45 @@ public class HomeActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             try {
 
-                if (!intent.getStringExtra("state").equals("null")) {
-                    statusText.setText("STATUS : " + intent.getStringExtra("state"));
-                    if (!intent.getStringExtra("state").equals("CONNECTED")) {
+//                if (!intent.getStringExtra("state").equals("null")) {
+//                    statusText.setText("STATUS : " + intent.getStringExtra("state"));
+//                    if (intent.getStringExtra("state").equals("CONNECTED")) {
+//                        onVpnConnected();
+//                    }
+//                    if (intent.getStringExtra("state").equals("DISCONNECTED")) {
+//                        onVpnDisconnected();
+//                    }
+//
+//                }
+
+                String state = intent.getStringExtra("state");
+
+                if (state != null && !state.equals("null")) { // Safely check for null
+                    statusText.setText("STATUS : " + state);
+
+                    if (state.equals("CONNECTED")) {
                         onVpnConnected();
+                    } else if (state.equals("DISCONNECTED")) {
+                        onVpnDisconnected();
                     }
                 }
+
 
             } catch (Exception e) {
 
             }
+            try {
+                updateSpeed(intent.getStringExtra("byteOut"), intent.getStringExtra("byteIn"));
+            } catch (Exception e) {
+            }
         }
     };
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(HomeActivity.this).unregisterReceiver(broadcastReceiver);
+    }
 
     private void onVpnConnected() {
 
@@ -431,6 +496,8 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 disconnectVpn();
+                //ads
+                showInterstitialAd();
             }
         });
 
@@ -440,15 +507,15 @@ public class HomeActivity extends AppCompatActivity {
         connectButtonText.setText("Connect");
         vpnButton.setImageDrawable(getResources().getDrawable(R.drawable.power_btn));
         isVpnConnected = false;
-        
+
         vpnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-               if (selectedServer != null && selectedServer.size() != 0){
-                   prepareVpn(selectedServer);
-               }else {
-                   Toast.makeText(HomeActivity.this, "Please Select a Server", Toast.LENGTH_SHORT).show();
-               }
+                if (selectedServer != null && selectedServer.size() != 0) {
+                    prepareVpn(selectedServer);
+                } else {
+                    Toast.makeText(HomeActivity.this, "Please Select a Server", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -457,6 +524,18 @@ public class HomeActivity extends AppCompatActivity {
     private void disconnectVpn() {
 
         OpenVPNThread.stop();
+        updateSpeed("00.0 Mbps", "00.0 Mbps");
+
+    }
+
+    private void updateSpeed(String uploadSpeed, String downloadSpeed) {
+
+        if (uploadSpeed == null || downloadSpeed == null) {
+            return;
+        }
+
+        uSpeedText.setText(uploadSpeed);
+        dSpeedText.setText(downloadSpeed);
 
     }
 
@@ -551,5 +630,40 @@ public class HomeActivity extends AppCompatActivity {
         IntentFilter intentFilter = new IntentFilter("connectionState");
         LocalBroadcastManager.getInstance(HomeActivity.this).registerReceiver(broadcastReceiver, intentFilter);
 
+    }
+
+
+    //ads
+    private void loadBannerAd() {
+
+
+    }
+
+    private void loadInterstitialAd() {
+        // Your interstitial ad loading logic here
+        AdRequest adRequest = new AdRequest.Builder().build();
+
+        InterstitialAd.load(this, "ca-app-pub-3940256099942544/1033173712", adRequest,
+                new InterstitialAdLoadCallback() {
+
+                    @Override
+                    public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                        minterstitialAd = interstitialAd;
+                    }
+
+                    @Override
+                    public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                        minterstitialAd = null;
+                    }
+
+
+                });
+    }
+
+    private void showInterstitialAd() {
+        if (minterstitialAd != null) {
+            minterstitialAd.show(this);
+        }
+        loadInterstitialAd();
     }
 }
