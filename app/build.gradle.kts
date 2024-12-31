@@ -53,4 +53,6 @@ dependencies {
 
     implementation(project(mapOf("path" to ":vpnLib")))
 
+    implementation ("com.google.code.gson:gson:2.8.8")
+
 }

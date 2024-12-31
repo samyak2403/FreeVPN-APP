@@ -246,6 +246,7 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/ipText2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="80dp"
@@ -257,12 +258,13 @@
                                 android:textStyle="bold" />
 
                             <TextView
+                                android:id="@+id/statusText"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="8dp"
                                 android:alpha="0.8"
                                 android:letterSpacing="0.05"
-                                android:text="STATUS : CONNECTED"
+                                android:text="STATUS : NOT CONNECTED"
                                 android:textColor="@color/black"
 
                                 android:textSize="16sp"
@@ -408,6 +410,7 @@
                         </LinearLayout>
 
                         <TextView
+                            android:id="@+id/connectButtonText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:letterSpacing="0.02"

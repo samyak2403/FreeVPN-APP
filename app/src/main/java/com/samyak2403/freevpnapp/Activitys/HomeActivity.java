@@ -4,9 +4,12 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.net.VpnService;
 import android.os.Bundle;
@@ -30,10 +33,13 @@ import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.samyak2403.freevpnapp.R;
 import com.samyak2403.freevpnapp.serverdata.Servers;
 
@@ -41,6 +47,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import de.blinkt.openvpn.OpenVpnApi;
+import de.blinkt.openvpn.core.OpenVPNThread;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -59,7 +66,7 @@ public class HomeActivity extends AppCompatActivity {
 
     ImageView countryFlag;
 
-    TextView countryName, ipText;
+    TextView countryName, ipText, statusText, ipText2, connectButtonText;
 
     // Ver
     ArrayList<HashMap<String, Object>> serverArrayList = new ArrayList<>();
@@ -67,6 +74,9 @@ public class HomeActivity extends AppCompatActivity {
     HashMap<String, Object> selectedServer = new HashMap<>();
 
     Dialog dialog;
+
+    boolean isVpnConnected = false;
+    SharedPreferences sharedPreferences;
 
 
     @Override
@@ -89,10 +99,19 @@ public class HomeActivity extends AppCompatActivity {
         countryName = findViewById(R.id.countryName);
         ipText = findViewById(R.id.ipText);
         vpnButton = findViewById(R.id.vpnButton);
+        statusText = findViewById(R.id.statusText);
+        ipText2 = findViewById(R.id.ipText2);
+        sharedPreferences = this.getSharedPreferences("ServerDetails", Activity.MODE_PRIVATE);
+        connectButtonText = findViewById(R.id.connectButtonText);
 
-
+        //setupDrawer
         setupDrawer();
+
+        //loadServers
         loadServers();
+
+        //loadSavedServer
+        loadSavedServer();
 
         //drawerButton
         drawerButton.setOnClickListener(new View.OnClickListener() {
@@ -111,17 +130,30 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
 
-
+        //VPN Button
         vpnButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (selectedServer != null && selectedServer.size() != 0) {
                     prepareVpn(selectedServer);
-                }else {
+                } else {
                     Toast.makeText(HomeActivity.this, "Please Select a Server", Toast.LENGTH_SHORT).show();
                 }
             }
         });
+
+    }
+
+    private void loadSavedServer() {
+
+        String serverData = sharedPreferences.getString("savedServer", "");
+        if (serverData.equals("") || serverData.length() < 10) {
+            return;
+        }
+        HashMap<String, Object> hashMap = new Gson().fromJson(serverData, new TypeToken<HashMap<String, Object>>() {
+        }.getType());
+
+        selectServer(hashMap);
 
     }
 
@@ -318,6 +350,9 @@ public class HomeActivity extends AppCompatActivity {
                 .load("https://www.vpngate.net/images//flags/24/" + hashMap.get("countryShort").toString() + ".png")
                 .into(countryFlag);
 
+        sharedPreferences.edit().putString("savedServer", new Gson().toJson(hashMap)).apply();
+
+
         if (dialog != null) {
             dialog.dismiss();
         }
@@ -343,7 +378,10 @@ public class HomeActivity extends AppCompatActivity {
 
 
         try {
+
             OpenVpnApi.startVpn(this, hashMap.get("oConfigData").toString(), hashMap.get("countryShort").toString(), "vpn", "vpn");
+            ipText2.setText("IP : " + hashMap.get("ipAddress").toString());
+
         } catch (RemoteException e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -363,6 +401,64 @@ public class HomeActivity extends AppCompatActivity {
             }
         }
     });
+
+
+    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            try {
+
+                if (!intent.getStringExtra("state").equals("null")) {
+                    statusText.setText("STATUS : " + intent.getStringExtra("state"));
+                    if (!intent.getStringExtra("state").equals("CONNECTED")) {
+                        onVpnConnected();
+                    }
+                }
+
+            } catch (Exception e) {
+
+            }
+        }
+    };
+
+    private void onVpnConnected() {
+
+        connectButtonText.setText("Disconnect");
+        vpnButton.setImageDrawable(getResources().getDrawable(R.drawable.ic_exit));
+        isVpnConnected = true;
+
+        vpnButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                disconnectVpn();
+            }
+        });
+
+    }
+
+    private void onVpnDisconnected() {
+        connectButtonText.setText("Connect");
+        vpnButton.setImageDrawable(getResources().getDrawable(R.drawable.power_btn));
+        isVpnConnected = false;
+        
+        vpnButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+               if (selectedServer != null && selectedServer.size() != 0){
+                   prepareVpn(selectedServer);
+               }else {
+                   Toast.makeText(HomeActivity.this, "Please Select a Server", Toast.LENGTH_SHORT).show();
+               }
+            }
+        });
+
+    }
+
+    private void disconnectVpn() {
+
+        OpenVPNThread.stop();
+
+    }
 
 
     public class ServerRecyclerAdapter extends RecyclerView.Adapter<ServerRecyclerAdapter.ViewHolder> {
@@ -449,4 +545,11 @@ public class HomeActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter intentFilter = new IntentFilter("connectionState");
+        LocalBroadcastManager.getInstance(HomeActivity.this).registerReceiver(broadcastReceiver, intentFilter);
+
+    }
 }
