@@ -4,26 +4,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="8dp"
-    android:background="@color/light_gray">
+    android:padding="8dp">
 
     <!-- Card Container -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="70dp"
         android:layout_margin="5dp"
-        app:cardCornerRadius="10dp"
-        app:cardElevation="8dp"
+        android:foreground="?attr/selectableItemBackground"
         app:cardBackgroundColor="@color/white"
-        android:foreground="?attr/selectableItemBackground">
+        app:cardCornerRadius="10dp"
+        app:cardElevation="8dp">
 
         <!-- Inner Content -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
+            android:gravity="center_vertical"
 
-            android:gravity="center_vertical">
+            android:orientation="horizontal">
 
             <!-- Country Icon -->
 
@@ -49,43 +48,43 @@
                     android:id="@+id/countryName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="Country Name"
                     android:textColor="@color/black"
                     android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:ellipsize="end"
-                    android:maxLines="1" />
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/ipText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="IP Address: 0.0.0.0"
-                    android:textColor="@color/dark_gray"
-                    android:textSize="14sp"
+                    android:layout_marginTop="4dp"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:layout_marginTop="4dp" />
+                    android:text="IP Address: 0.0.0.0"
+                    android:textColor="@color/dark_gray"
+                    android:textSize="14sp" />
 
                 <TextView
                     android:id="@+id/speedText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Speed: 3.0 GBPS"
-                    android:textColor="@color/dark_gray"
-                    android:textSize="14sp"
+                    android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:layout_marginTop="2dp" />
+                    android:text="Speed: 3.0 GBPS"
+                    android:textColor="@color/dark_gray"
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <!-- Navigation Arrow -->
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/arrow_ios_forward"
-                android:contentDescription="@string/navigate"
                 android:alpha="0.8"
+                android:contentDescription="@string/navigate"
+                android:src="@drawable/arrow_ios_forward"
                 app:tint="@color/black" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>

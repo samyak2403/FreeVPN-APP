@@ -19,19 +19,15 @@ import okhttp3.Response;
 
 public class Servers {
 
-
-    Call mcall;
+    private Call mCall;
 
     public Servers() {
-
     }
 
     public void loadServers(ServerLoadListener serverLoadListener) {
-
-
         Request request = new Request.Builder().url("http://www.vpngate.net/api/iphone").build();
-        mcall = new OkHttpClient().newCall(request);
-        mcall.enqueue(new Callback() {
+        mCall = new OkHttpClient().newCall(request);
+        mCall.enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 serverLoadListener.onServerLoadFailed(e.getMessage());
@@ -39,15 +35,16 @@ public class Servers {
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-
+                if (response.isSuccessful() && response.body() != null) {
+                    parseResponse(response, serverLoadListener);
+                } else {
+                    serverLoadListener.onServerLoadFailed("Response unsuccessful or empty body.");
+                }
             }
         });
-
     }
 
-
-    public void paresResponse(Response response, ServerLoadListener serverLoadListener) {
-
+    private void parseResponse(Response response, ServerLoadListener serverLoadListener) {
         InputStream inputStream = null;
         BufferedReader bufferedReader = null;
 
@@ -58,90 +55,87 @@ public class Servers {
 
             while ((data = bufferedReader.readLine()) != null) {
                 if (!data.startsWith("*") && !data.startsWith("#")) {
-
                     loadServerData(serverLoadListener, data);
                 }
             }
 
-            inputStream.close();
-            bufferedReader.close();
-
         } catch (IOException e) {
             serverLoadListener.onServerLoadFailed(e.getMessage());
+        } finally {
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+                if (bufferedReader != null) {
+                    bufferedReader.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-
     }
 
-    public void loadServerData(ServerLoadListener serverLoadListener, String data) {
+    private void loadServerData(ServerLoadListener serverLoadListener, String data) {
+        try {
+            HashMap<String, Object> hashMap = new HashMap<>();
+            String[] serverData = data.split(",");
 
-        HashMap<String, Object> hashMap = new HashMap<>();
-        String[] serverData = data.split(",");
+            if (serverData.length < 15) {
+                serverLoadListener.onServerLoadFailed("Incomplete server data.");
+                return;
+            }
 
+            hashMap.put("hostName", serverData[0]);
+            hashMap.put("ipAddress", serverData[1]);
+            hashMap.put("score", serverData[2]);
+            hashMap.put("ping", serverData[3]);
+            hashMap.put("speed", serverData[4]);
+            hashMap.put("countryLong", serverData[5]);
+            hashMap.put("countryShort", serverData[6]);
+            hashMap.put("sessions", serverData[7]);
+            hashMap.put("uptime", serverData[8]);
+            hashMap.put("totalUsers", serverData[9]);
+            hashMap.put("totalTraffic", serverData[10]);
+            hashMap.put("logType", serverData[11]);
+            hashMap.put("operator", serverData[12]);
+            hashMap.put("message", serverData[13]);
+            hashMap.put("oConfigData", new String(Base64.decode(serverData[14], Base64.DEFAULT)));
 
-        hashMap.put("hostName", serverData[0]);
-        hashMap.put("ipAddress", serverData[1]);
-        hashMap.put("score", serverData[2]);
-        hashMap.put("ping", serverData[3]);
-        hashMap.put("speed", serverData[4]);
-        hashMap.put("countryLong", serverData[5]);
-        hashMap.put("countryShort", serverData[6]);
-        hashMap.put("sessions", serverData[7]);
-        hashMap.put("uptime", serverData[8]);
-        hashMap.put("totalUsers", serverData[9]);
-        hashMap.put("totalTraffic", serverData[10]);
-        hashMap.put("logType", serverData[11]);
-        hashMap.put("operator", serverData[12]);
-        hashMap.put("message", serverData[13]);
-        hashMap.put("oConfigData", new String(Base64.decode(serverData[14], Base64.DEFAULT)));
+            String[] lines = hashMap.get("oConfigData").toString().split("[\\r\\n]+");
+            hashMap.put("port", getPort(lines));
+            hashMap.put("protocol", getProtocol(lines));
 
-
-        String[] lines = hashMap.get("oConfigData").toString().split("[\\r\\n]+");
-        hashMap.put("port", getPort(lines));
-        hashMap.put("protocol", getProtocol(lines));
-
-
+            serverLoadListener.onServerLoaded(hashMap);
+        } catch (Exception e) {
+            serverLoadListener.onServerLoadFailed(e.getMessage());
+        }
     }
 
-
-    // Protocol get
     public static String getProtocol(String[] lines) {
-
-        String protocol = "";
         for (String line : lines) {
-            if (!line.startsWith("#")) {
-                if (line.startsWith("proto")) {
-                    protocol = line.split("")[1];
-                }
+            if (!line.startsWith("#") && line.startsWith("proto")) {
+                return line.split("\\s+")[1];
             }
         }
-        return protocol;
-
+        return "";
     }
 
-    //Port
     public static int getPort(String[] lines) {
-
-        int port = 0;
         for (String line : lines) {
-            if (!line.startsWith("#")) {
-                if (line.startsWith("remote")) {
-                    port = Integer.parseInt(line.split("")[2]);
+            if (!line.startsWith("#") && line.startsWith("remote")) {
+                try {
+                    return Integer.parseInt(line.split("\\s+")[2]);
+                } catch (NumberFormatException e) {
+                    return 0;
                 }
             }
         }
-        return port;
-
+        return 0;
     }
 
-    //Server LoadListener
     public interface ServerLoadListener {
-
-
         void onServerLoaded(HashMap<String, Object> hashMaps);
 
         void onServerLoadFailed(String message);
-
     }
-
-
 }

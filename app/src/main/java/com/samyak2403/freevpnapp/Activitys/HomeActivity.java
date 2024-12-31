@@ -8,16 +8,15 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
@@ -27,6 +26,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.samyak2403.freevpnapp.R;
 import com.samyak2403.freevpnapp.serverdata.Servers;
 
@@ -73,7 +73,7 @@ public class HomeActivity extends AppCompatActivity {
         setupDrawer();
         loadServers();
 
-
+        //drawerButton
         drawerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -82,6 +82,7 @@ public class HomeActivity extends AppCompatActivity {
         });
 
 
+        //serverButton
         serverButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -93,7 +94,7 @@ public class HomeActivity extends AppCompatActivity {
 
     private void showServerLayout() {
 
-        Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar);
 
         View view = getLayoutInflater().inflate(R.layout.server_layout, null);
         dialog.setContentView(view);
@@ -102,13 +103,12 @@ public class HomeActivity extends AppCompatActivity {
         ImageView backButton = view.findViewById(R.id.backButton);
 
         ImageView infoButton = view.findViewById(R.id.infoButton);
-
-
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setItemViewCacheSize(1000);
         recyclerView.setAdapter(new ServerRecyclerAdapter(serverArrayList));
 
 
+        //back button
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -117,6 +117,7 @@ public class HomeActivity extends AppCompatActivity {
         });
 
 
+        //Credits
         infoButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -234,20 +235,18 @@ public class HomeActivity extends AppCompatActivity {
 
 
     private void loadServers() {
-
         Servers servers = new Servers();
 
         servers.loadServers(new Servers.ServerLoadListener() {
             @SuppressLint("NotifyDataSetChanged")
             @Override
-            public void onServerLoaded(HashMap<String, Object> hashMap) {
-                if (!serverArrayList.contains(hashMap)) {
-                    serverArrayList.add(hashMap);
+            public void onServerLoaded(HashMap<String, Object> hashMaps) {
+                if (!serverArrayList.contains(hashMaps)) {
+                    serverArrayList.add(hashMaps);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-
-                            if (recyclerView != null){
+                            if (recyclerView != null) {
                                 recyclerView.getAdapter().notifyDataSetChanged();
                             }
                         }
@@ -257,7 +256,8 @@ public class HomeActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onServerFailed(String message) {
+            public void onServerLoadFailed(String message) {
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -266,7 +266,6 @@ public class HomeActivity extends AppCompatActivity {
                 });
             }
         });
-
     }
 
 
@@ -274,46 +273,66 @@ public class HomeActivity extends AppCompatActivity {
 
         ArrayList<HashMap<String, Object>> _data;
 
-
         public ServerRecyclerAdapter(ArrayList<HashMap<String, Object>> arrayList) {
             _data = arrayList;
+
+
         }
 
         @Override
         public ServerRecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-            LayoutInflater _inflater = (LayoutInflater) getBaseContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            View _v = _inflater.inflate(R.layout.server_adpter, null);
+            LayoutInflater _inflate = (LayoutInflater) getBaseContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+//            View _v = _inflate.inflate(R.layout.server_adpter, null);
+            View _v = LayoutInflater.from(parent.getContext()).inflate(R.layout.server_adpter, parent, false);
+
             RecyclerView.LayoutParams _lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             _v.setLayoutParams(_lp);
 
-            return new ServerRecyclerAdapter.ViewHolder(_v);
 
+            return new ServerRecyclerAdapter.ViewHolder(_v);
 
         }
 
+
         @Override
         public void onBindViewHolder(ServerRecyclerAdapter.ViewHolder _holder, @SuppressLint("RecyclerView") final int _position) {
-
             View view = _holder.itemView;
 
             ImageView countryFlag = view.findViewById(R.id.countryFlag);
+            TextView speedText = view.findViewById(R.id.speedText);
+            TextView countryName = view.findViewById(R.id.countryName);
+            TextView ipText = view.findViewById(R.id.ipText);
+
+            countryName.setText(_data.get(_position).get("countryLong").toString());
+            speedText.setText(_data.get(_position).get("speed").toString());
+            ipText.setText(_data.get(_position).get("ipAddress").toString());
+
+
+//            String imageUrl = ;
+
+            Glide.with(HomeActivity.this)
+                    .load("https://www.vpngate.net/images//flags/24/" + _data.get(_position).get("countryShort").toString() + ".png")
+                    .into(countryFlag);
 
 
         }
 
         @Override
         public int getItemCount() {
+
             if (_data != null) {
                 return _data.size();
             } else {
                 return 0;
             }
+
         }
 
         public class ViewHolder extends RecyclerView.ViewHolder {
             public ViewHolder(View v) {
                 super(v);
+
             }
         }
 
