@@ -27,7 +27,7 @@
             <ImageView
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:src="@drawable/vpn"
+                android:src="@drawable/vpnp"
                 android:contentDescription="@string/app_logo" />
         </LinearLayout>
 
@@ -53,6 +53,7 @@
 
             <!-- App Version -->
             <TextView
+                android:id="@+id/app_Version"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"

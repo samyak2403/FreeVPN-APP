@@ -12,6 +12,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.net.VpnService;
 import android.os.Bundle;
@@ -80,7 +82,7 @@ public class HomeActivity extends AppCompatActivity {
 
     ImageView countryFlag, settingButton;
 
-    TextView countryName, ipText, statusText, ipText2, connectButtonText, dSpeedText, uSpeedText;
+    TextView countryName, ipText, statusText, ipText2, connectButtonText, dSpeedText, uSpeedText, app_Version;
 
     // Ver
     ArrayList<HashMap<String, Object>> serverArrayList = new ArrayList<>();
@@ -125,6 +127,7 @@ public class HomeActivity extends AppCompatActivity {
         dSpeedText = findViewById(R.id.dSpeedText);
         uSpeedText = findViewById(R.id.uSpeedText);
         settingButton = findViewById(R.id.settingButton);
+        app_Version = findViewById(R.id.app_Version);
 
         //setupDrawer
         setupDrawer();
@@ -177,6 +180,20 @@ public class HomeActivity extends AppCompatActivity {
         loadInterstitialAd();
         loadBannerAd();
 
+        // Display app version
+        String appVersion = getAppVersion();
+        app_Version.setText(appVersion);
+
+    }
+
+    private String getAppVersion() {
+
+        try {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            return "Version: " + packageInfo.versionName + " (" + packageInfo.versionCode + ")";
+        } catch (PackageManager.NameNotFoundException e) {
+            return "Version info not available";
+        }
     }
 
     private void checkVpnConnection() {
@@ -277,7 +294,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(""));
+                intent.setData(Uri.parse(getString(R.string.youttube_link)));
                 startActivity(intent);
             }
         });
@@ -286,7 +303,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(""));
+                intent.setData(Uri.parse(getString(R.string.telegram_user_id)));
                 startActivity(intent);
             }
         });
@@ -295,7 +312,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(""));
+                intent.setData(Uri.parse(getString(R.string.instagram_id)));
                 startActivity(intent);
             }
         });
@@ -312,18 +329,35 @@ public class HomeActivity extends AppCompatActivity {
         drawerShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.setType("text/plain");
-                intent.putExtra(Intent.EXTRA_TEXT, "https://github.com/samyak2403/IPTVmine");
-                startActivity(Intent.createChooser(intent, "share"));
+                // Create an Intent to share the message
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+
+                // Set the type of content to share
+                shareIntent.setType("text/plain");
+
+                // Get the package name dynamically
+                String packageName = getPackageName();
+
+                // Add an attractive message
+                String message = "🚀 Discover amazing features with our app! \n" +
+                        "📱 Download now and enjoy: Free VPN App \n\n" +
+                        "👉 Click here to download: https://play.google.com/store/apps/details?id=" + packageName + "\n\n" +
+                        "💡 Share this with your friends and family!";
+
+                // Add the message to the Intent
+                shareIntent.putExtra(Intent.EXTRA_TEXT, message);
+
+                // Start the sharing activity
+                startActivity(Intent.createChooser(shareIntent, "Share our app via"));
             }
         });
+
 
         drawerPrivacy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(""));
+                intent.setData(Uri.parse(getString(R.string.Privacy_Policy)));
                 startActivity(intent);
             }
         });
@@ -332,7 +366,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(""));
+                intent.setData(Uri.parse(getString(R.string.Terms_Conditions)));
                 startActivity(intent);
             }
         });
@@ -340,8 +374,8 @@ public class HomeActivity extends AppCompatActivity {
         drawerAbout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse("https://github.com/samyak2403/IPTVmine"));
+
+                Intent intent = new Intent(HomeActivity.this, AboutActivity.class);
                 startActivity(intent);
             }
         });
@@ -590,7 +624,6 @@ public class HomeActivity extends AppCompatActivity {
 //            speedText.setText(_data.get(_position).get("speed").toString());
 
 
-
             // Ensure speed is formatted as 00.0 Mbps
             String speed = _data.get(_position).get("speed").toString();
 
@@ -698,23 +731,23 @@ public class HomeActivity extends AppCompatActivity {
         if (minterstitialAd != null) {
             minterstitialAd.show(this);
 
-      minterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
-        @Override
-        public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
-            super.onAdFailedToShowFullScreenContent(adError);
-            Log.d(TAG, "showInterstitial: fail");
-        }
+            minterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                @Override
+                public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                    super.onAdFailedToShowFullScreenContent(adError);
+                    Log.d(TAG, "showInterstitial: fail");
+                }
 
-        @Override
-        public void onAdDismissedFullScreenContent() {
-            super.onAdDismissedFullScreenContent();
-            sharePrefs.putLong("lastAd", new Date().getTime() + (long) adDelay * 60 * 1000);
-            loadInterstitialAd();
-            Log.d(TAG, "showInterstitial: dismiss");
+                @Override
+                public void onAdDismissedFullScreenContent() {
+                    super.onAdDismissedFullScreenContent();
+                    sharePrefs.putLong("lastAd", new Date().getTime() + (long) adDelay * 60 * 1000);
+                    loadInterstitialAd();
+                    Log.d(TAG, "showInterstitial: dismiss");
 
-        }
-    });
-        }else {
+                }
+            });
+        } else {
             loadInterstitialAd();
 
         }

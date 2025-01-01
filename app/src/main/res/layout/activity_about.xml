@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical">
+
+    <!-- Header Layout -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="#33373A"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/backButton"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginLeft="15dp"
+            android:background="@drawable/ripple"
+            android:padding="3dp"
+            android:src="@drawable/arrow_back"
+            app:tint="@color/white" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_weight="1"
+            android:text="🌐 About Free VPN"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/infoButton"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginRight="15dp"
+            android:background="@drawable/ripple"
+            android:padding="3dp"
+            android:src="@drawable/baseline_account_circle_24"
+            app:tint="@color/white" />
+    </LinearLayout>
+
+    <!-- Features List -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/feature1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🌍 Unlimited Global Servers"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:padding="10dp" />
+
+        <TextView
+            android:id="@+id/feature2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔒 Secure Your Connection with Encryption"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:padding="10dp" />
+
+        <TextView
+            android:id="@+id/feature3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🚀 Boost Your Browsing Speed"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:padding="10dp" />
+
+        <TextView
+            android:id="@+id/feature4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📱 User-Friendly Interface"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:padding="10dp" />
+
+        <TextView
+            android:id="@+id/feature5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🌟 No Ads in Premium Version"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:padding="10dp" />
+    </LinearLayout>
+
+    <!-- Banner Ad -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:gravity="center">
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/adView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:adSize="BANNER"
+            app:adUnitId="@string/banner_Id" />
+    </LinearLayout>
+
+</LinearLayout>

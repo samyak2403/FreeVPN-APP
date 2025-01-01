@@ -4,9 +4,15 @@
     <string name="country_flag">Country Flag</string>
     <string name="navigate">Navigate</string>
 
-    <string name="banner_Id">ca-app-pub-3940256099942544/6300978111</string>
-    <string name="in">ca-app-pub-3940256099942544/6300978111</string>
-    <string name="open_ads">ca-app-pub-3940256099942544/9257395921</string>
-    <string name="interstitial_ad">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="app_id">ca-app-pub-6211293117600297~3436477893</string>
+    <string name="banner_Id">ca-app-pub-6211293117600297/3751370330</string>
+
+    <string name="open_ads">ca-app-pub-6211293117600297/8456902105</string>
+    <string name="interstitial_ad">ca-app-pub-6211293117600297/4078673398</string>
+    <string name="Terms_Conditions">https://drfiles.github.io/free-vpn-app-Privacy-Policy.github.io/TermsConditions..html</string>
+    <string name="Privacy_Policy">https://drfiles.github.io/free-vpn-app-Privacy-Policy.github.io/</string>
+    <string name="instagram_id">https://www.instagram.com/mr_samyakkamble/</string>
+    <string name="youttube_link">https://www.youtube.com/@arrowwouldcoders</string>
+    <string name="telegram_user_id">https://t.me/mr_samyakkamble</string>
 
 </resources>
