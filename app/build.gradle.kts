@@ -58,4 +58,7 @@ dependencies {
     //ads
     implementation("com.google.android.gms:play-services-ads:23.6.0")
 
+    implementation ("com.github.samyak2403:Admob-Open-Ads:1.0.samu")
+
+
 }

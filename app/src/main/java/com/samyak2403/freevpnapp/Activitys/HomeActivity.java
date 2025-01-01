@@ -1,5 +1,7 @@
 package com.samyak2403.freevpnapp.Activitys;
 
+import static android.content.ContentValues.TAG;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -14,6 +16,7 @@ import android.net.Uri;
 import android.net.VpnService;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,17 +42,21 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.samyak2403.freevpnapp.R;
+import com.samyak2403.freevpnapp.Util.SharePrefs;
 import com.samyak2403.freevpnapp.serverdata.Servers;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 import de.blinkt.openvpn.OpenVpnApi;
@@ -84,6 +91,9 @@ public class HomeActivity extends AppCompatActivity {
 
     boolean isVpnConnected = false;
     SharedPreferences sharedPreferences;
+
+    SharePrefs sharePrefs;
+    int adDelay = 0;
 
     InterstitialAd minterstitialAd;
 
@@ -577,7 +587,31 @@ public class HomeActivity extends AppCompatActivity {
             LinearLayout serverLayout = view.findViewById(R.id.serverLayout);
 
             countryName.setText(_data.get(_position).get("countryLong").toString());
-            speedText.setText(_data.get(_position).get("speed").toString());
+//            speedText.setText(_data.get(_position).get("speed").toString());
+
+
+
+            // Ensure speed is formatted as 00.0 Mbps
+            String speed = _data.get(_position).get("speed").toString();
+
+            try {
+                // Convert the speed string to a double
+                double speedValue = Double.parseDouble(speed);
+
+                // Adjust the value to display in Mbps
+                double displaySpeed = speedValue / 1000.0; // Assuming the original speed is in Kbps
+
+                // Format the speed to show as "2.0 Mbps" or similar
+                String formattedSpeed = String.format("%.1f Mbps", displaySpeed);
+
+                // Set the formatted text
+                speedText.setText(formattedSpeed);
+            } catch (NumberFormatException | NullPointerException e) {
+                // If parsing fails, show a default value
+                speedText.setText("0.0 Mbps");
+            }
+
+
             ipText.setText(_data.get(_position).get("ipAddress").toString());
 
 
@@ -643,7 +677,7 @@ public class HomeActivity extends AppCompatActivity {
         // Your interstitial ad loading logic here
         AdRequest adRequest = new AdRequest.Builder().build();
 
-        InterstitialAd.load(this, "ca-app-pub-3940256099942544/1033173712", adRequest,
+        InterstitialAd.load(this, getString(R.string.interstitial_ad), adRequest,
                 new InterstitialAdLoadCallback() {
 
                     @Override
@@ -663,7 +697,28 @@ public class HomeActivity extends AppCompatActivity {
     private void showInterstitialAd() {
         if (minterstitialAd != null) {
             minterstitialAd.show(this);
+
+      minterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+        @Override
+        public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+            super.onAdFailedToShowFullScreenContent(adError);
+            Log.d(TAG, "showInterstitial: fail");
         }
-        loadInterstitialAd();
+
+        @Override
+        public void onAdDismissedFullScreenContent() {
+            super.onAdDismissedFullScreenContent();
+            sharePrefs.putLong("lastAd", new Date().getTime() + (long) adDelay * 60 * 1000);
+            loadInterstitialAd();
+            Log.d(TAG, "showInterstitial: dismiss");
+
+        }
+    });
+        }else {
+            loadInterstitialAd();
+
+        }
     }
+
+
 }

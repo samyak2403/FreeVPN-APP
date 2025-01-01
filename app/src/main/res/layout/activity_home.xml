@@ -45,6 +45,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="80dp"
 
+
                             android:gravity="center_vertical"
                             android:orientation="horizontal"
                             android:paddingHorizontal="16dp">
@@ -53,6 +54,7 @@
                                 android:layout_width="48dp"
                                 android:layout_height="48dp"
                                 android:layout_marginEnd="8dp"
+                                android:alpha="0.5"
 
                                 app:cardCornerRadius="24dp"
                                 app:cardElevation="4dp">
@@ -85,7 +87,7 @@
                                 android:layout_width="48dp"
                                 android:layout_height="48dp"
                                 android:layout_marginEnd="8dp"
-
+                                android:alpha="0.5"
                                 app:cardCornerRadius="24dp"
                                 app:cardElevation="4dp">
 
@@ -341,6 +343,8 @@
                                             android:layout_height="match_parent"
                                             android:contentDescription="@string/country_flag"
                                             android:padding="5dp"
+                                            android:scaleType="fitCenter"
+                                            android:background="@drawable/circle_shap"
                                             android:src="@drawable/flag" />
                                     </LinearLayout>
 
